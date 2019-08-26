@@ -8,57 +8,74 @@ use  jagarsoft\StateMachine\Event;
 // declare(strict_types=1);
 
 class StateMachine {
-	protected $stateTransitions = [];
-	protected $actionTransitions = [];
-
 	protected $sm = array();
 	
-	// State currentState = null;
+	protected /*State*/ $currentState = null;
 	
-	/*public function addState(State $state) {
-		$state_transition = [ 'event' => null, 'state' => null ];
-		$action_transition = [ 'event' => null, 'action' => null ];
-		
-		$this->stateTransitions[$state->getState()] = $state_transition;
-		$this->actionTransitions[$state->getState()] = $action_transition;
-	}*/
-	
-	/*public function addTransition(State $currState, Event $currEvent, State $nextState, / *Action* / $execAction) {
-		
-		$state_transition = &$this->stateTransitions[$currState->getState()];
-	    $action_transition = &$this->actionTransitions[$currState->getState()];
-		
-		$state_transition['event'] = $action_transition['event'] = $currEvent;
-		$state_transition['state'] = $currState;
-		$action_transition['action'] = $execAction;
-	}*/
-    /*public function addState(State $state) {
-        $this->sm[$state->getState()] = array();
-    }*/
+	public function __construct(Array $sm = [])
+    {
+        if( ! empty($sm) ){
+            // StateEnum::CURRENT_STATE => [ EventEnum::ON_EVENT => [ StateEnum::NEXT_STATE_2, ActionClosureOrFunction ]  ],
+            foreach ($sm as $state => $transition){
+                $this->addState(new State($state));
+                foreach ($transition as $onEvent => $nextStateAndAction) {
+                    if( array_key_exists(1, $nextStateAndAction) ) {
+                        $this->addTransition(new State($state), new Event($onEvent), new State($nextStateAndAction[0]), $nextStateAndAction[1]);
+                    } else {
+                        $this->addTransition(new State($state), new Event($onEvent), new State($nextStateAndAction[0]));
+                    }
+                }
+            }
+        }
+    }
 
-public function addTransition(/*State*/ $currState, /*Event*/ $currEvent, /*State*/ $nextState, /*Action*/ $execAction) {
-    $this->sm[$currState->getState()] = [
-                                $currEvent->getEvent() => [
-                                                'nextState' => $nextState,
-                                                'execAction' => $execAction
-                                ]
-                            ];
+    public function addState(State $state) {
+        $this->setCurrentStateIfThisIsInitialState($state);
+
+        $this->sm[$state->getValue()] = array();
+    }
+
+public function addTransition(State $currState, Event $currEvent, State $nextState, /*Action*/ \Closure $execAction = null ) {
+    $this->setCurrentStateIfThisIsInitialState($currState);
+
+    /*$eventsList = $this->sm[$currState->getValue()];
+    $eventsList[$currEvent->getValue()] = [
+                                          'nextState' => $nextState,
+                                          'execAction' => $execAction
+                                        ];*/
+    $this->sm[$currState->getValue()][ $currEvent->getValue()] = [
+                                            'nextState' => $nextState,
+                                            'execAction' => $execAction
+                                            ];
 }
 
     /**
      * @param $evento_a
      */
-    public function fireEvent($currentState, $evento_a): void
+    public function fireEvent(Event $evento_a): void
     {
-        $this->sm[$currentState->getState()][$evento_a->getEvent()]['nextState'];
-        $this->sm[$currentState->getState()][$evento_a->getEvent()]['execAction']();
+        $action = $this->sm[$this->currentState->getValue()][$evento_a->getValue()]['execAction'];
+        if( $action ){
+            ($action)();
+        }
+        $this->currentState = $this->sm[$this->currentState->getValue()][$evento_a->getValue()]['nextState'];
+    }
+
+    private function setCurrentStateIfThisIsInitialState(State $state){
+        if( $this->currentState == null){
+            $this->currentState = $state;
+        }
     }
 	
 	public function dumpStates(){
-		var_dump($this->stateTransitions);
+		var_dump(array_keys($this->sm));
 	}
 	
 	public function dumpEvents(){
-		var_dump($this->actionTransitions);
+		var_dump($this->sm);
 	}
+
+	public function getMachineToArray(){
+	    return $this->sm;
+    }
 }

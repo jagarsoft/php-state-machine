@@ -2,9 +2,9 @@
 
 namespace jagarsoft\StateMachine;
 
-use jagarsoft\StateMachine\Stubs\StateEnum;
+use jagarsoft\StateMachine\EnumInterface;
 
-class State {
+class State implements EnumInterface {
 		protected $s = null; // StateEnum
 		
 		/**
@@ -21,13 +21,13 @@ class State {
 		 * 
 		 * @return La constante
 		 */
-		public function getState()/*:StateEnum*/ {
+		public function getValue()/*:StateEnum*/ {
 			return $this->s;
 		}
 		
 		public function __toString(): string {
-			if( $this->getState() != null )
-				return $this->getState()->__toString();
+			if( $this->getValue() != null )
+				return $this->getValue()->__toString();
 			return parent::toString();
 		}
 }

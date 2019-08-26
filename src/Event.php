@@ -2,9 +2,9 @@
 
 namespace jagarsoft\StateMachine;
 
-use jagarsoft\StateMachine\Stubs\EventEnum;
+use jagarsoft\StateMachine\EnumInterface;
 
-class Event {
+class Event implements EnumInterface {
 		protected $e = null; // EventEnum
 		
 		public function __construct(/*EventEnum*/ $e){
@@ -16,13 +16,13 @@ class Event {
 		 * 
 		 * @return La constante
 		 */
-		public function getEvent()/*:EventEnum*/ {
+		public function getValue()/*:EventEnum*/ {
 			return $this->e;
 		}
 		
 		public function __toString(): string {
-			if( $this->getEvent() != null )
-				return $this->getEvent()->toString();
+			if( $this->getValue() != null )
+				return $this->getValue()->toString();
 			return parent::toString();
 		}
 }
