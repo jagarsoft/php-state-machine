@@ -3,7 +3,7 @@
 namespace jagarsoft\StateMachine\Stubs;
  
 class EventEnum {
-	const EVENTO_A = 'A';
-	const EVENTO_B = 'B';
-	const EVENTO_C = 'C';
+	const EVENT_A = 'A';
+	const EVENT_B = 'B';
+	const EVENT_C = 'C';
 }

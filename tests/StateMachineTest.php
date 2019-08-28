@@ -2,8 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use jagarsoft\StateMachine\StateMachine;
-use jagarsoft\StateMachine\State;
-use jagarsoft\StateMachine\Event;
 use jagarsoft\StateMachine\Stubs\StateEnum;
 use jagarsoft\StateMachine\Stubs\EventEnum;
 
@@ -15,7 +13,7 @@ class StateMachineTest extends TestCase {
 	function test_can_make_StateMachine_class(){
 		try {
 		  $sm = new StateMachine();
-		} catch (InvalidArgumentException $notExpected) {
+		} catch (\Exception $notExpected) {
 		  $this->fail();
 		}
 
@@ -24,148 +22,241 @@ class StateMachineTest extends TestCase {
 
     function test_can_make_StateMachine_from_construct() {
         $sm = new StateMachine([
-            StateEnum::ESTADO_1 => [ EventEnum::EVENTO_A => [ StateEnum::ESTADO_2]  ],
-            StateEnum::ESTADO_2 => [ EventEnum::EVENTO_B => [ StateEnum::ESTADO_3]  ],
-            StateEnum::ESTADO_3 => [ EventEnum::EVENTO_C => [ StateEnum::ESTADO_1]  ],
+            StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2]  ],
+            StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3]  ],
+            StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1]  ],
         ]);
 
         $this->assertArraySubsetBis([
-            StateEnum::ESTADO_1 => [ EventEnum::EVENTO_A => [ StateEnum::ESTADO_2, null ]  ],
-            StateEnum::ESTADO_2 => [ EventEnum::EVENTO_B => [ StateEnum::ESTADO_3, null ]  ],
-            StateEnum::ESTADO_3 => [ EventEnum::EVENTO_C => [ StateEnum::ESTADO_1, null ]  ],
+            StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2, null ]  ],
+            StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3, null ]  ],
+            StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1, null ]  ],
         ], $sm->getMachineToArray());
 
-        /*$this->markTestIncomplete(
-            'Verify Machine\'s structure is pending.'
-        );*/
-
-        $sm->dumpStates();
-        $sm->dumpEvents();
-
+        //$sm->dumpStates();
+        //$sm->dumpEvents();
     }
 
-    function test_can_make_transition() {
-        $estado_1 = new State(StateEnum::ESTADO_1);
-        $evento_a = new Event(EventEnum::EVENTO_A);
+    function test_states_and_events_can_not_be_null(){
+	    $this->expectException(InvalidArgumentException::class);
 
         $sm = new StateMachine();
 
-        $sm->addState($estado_1);
-        $sm->addTransition($estado_1, $evento_a, $estado_1, null);
+        $sm->addState(null); // Not NULL
+
+        $sm->addState(""); // Not Blank
+
+        $sm->addTransition(null, null, null); // Not from NULL state
+
+        $sm->addTransition("", null, null); // Not from Blank state
+
+        $sm->addTransition(1, null, null); // Not for NULL event
+
+        $sm->addTransition(1, "", null);// Not for Blank event
+
+        $sm->addTransition(1, 2, null); // Not to NULL next state
+
+        $sm->addTransition(1, 2, ""); // Not to Blank next state
 
         $this->assertTrue(TRUE);
 
-        $this->markTestIncomplete(
-            'Verify Transition\'s structure is pending.'
-        );
+        //$sm->dumpStates();
+        //$sm->dumpEvents();
     }
 
-    function test_can_do_transition() {
-        $fired = false;
+    function test_can_set_currentState_from_first_addState_or_addTransition(){
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
 
-        $estado_1 = new State(StateEnum::ESTADO_1);
-        $evento_a = new Event(EventEnum::EVENTO_A);
+        $sm_A = new StateMachine();
+
+        $sm_A->addState($state_1);
+        $this->assertSame($state_1, $sm_A->getCurrentState());
+
+        $sm_B = new StateMachine();
+
+        $sm_B->addTransition($state_1, $event_a, $state_1, null);
+        $this->assertSame($state_1, $sm_B->getCurrentState());
+    }
+
+    function test_can_make_valid_transition() {
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
 
         $sm = new StateMachine();
 
-        //$sm->addState($estado_1);
-        $sm->addTransition($estado_1, $evento_a, $estado_1, function() use (&$fired){
+        $sm->addState($state_1);
+        $sm->addTransition($state_1, $event_a, $state_1, null);
+
+        $this->assertTrue(TRUE);
+    }
+
+    function test_can_do_valid_transition() {
+        $fired = false;
+
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        //$sm->addState($state_1);
+        $sm->addTransition($state_1, $event_a, $state_1, function() use (&$fired){
                 $fired = true;
         });
 
-        $sm->fireEvent($evento_a);
+        $sm->fireEvent($event_a);
 
         $this->assertTrue($fired);
     }
 
-    function test_can_do_transitions_from_the_same_state() {
-        $fired[EventEnum::EVENTO_A] = false;
-        $fired[EventEnum::EVENTO_B] = false;
+    function test_can_not_do_transition_to_undefined_state() {
+        $this->expectException(InvalidArgumentException::class);
 
-        $estado_1 = new State(StateEnum::ESTADO_1);
-        $evento_a = new Event(EventEnum::EVENTO_A);
-        $evento_b = new Event(EventEnum::EVENTO_B);
-
-        $sm = new StateMachine();
-
-        $sm->addTransition($estado_1, $evento_a, $estado_1, function() use (&$fired){
-            $fired[EventEnum::EVENTO_A] = true;
-        });
-
-        $sm->addTransition($estado_1, $evento_b, $estado_1, function() use (&$fired){
-            $fired[EventEnum::EVENTO_B] = true;
-        });
-
-        $sm->fireEvent($evento_a);
-        $sm->fireEvent($evento_b);
-
-        $this->assertTrue($fired[EventEnum::EVENTO_A], "From State 1 with Event A to new State 1");
-        $this->assertTrue($fired[EventEnum::EVENTO_B], "From State 1 with Event B to new State 1");
-    }
-
-    function test_can_do_transitions_for_the_same_events() {
-        $fired[StateEnum::ESTADO_1] = false;
-        $fired[StateEnum::ESTADO_2] = false;
-
-        $estado_1 = new State(StateEnum::ESTADO_1);
-        $estado_2 = new State(StateEnum::ESTADO_2);
-        $evento_a = new Event(EventEnum::EVENTO_A);
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+        $event_a = EventEnum::EVENT_A;
 
         $sm = new StateMachine();
 
-        $sm->addTransition($estado_1, $evento_a, $estado_2, function() use (&$fired){
-            $fired[StateEnum::ESTADO_1] = true;
+        //$sm->addState($state_1);
+        $sm->addTransition($state_1, $event_a, $state_2, null);
 
-        });
-
-        $sm->addTransition($estado_2, $evento_a, $estado_1, function() use (&$fired){
-            $fired[StateEnum::ESTADO_2] = true;
-        });
-
-        $sm->fireEvent($evento_a);
-        $sm->fireEvent($evento_a);
-
-        $this->assertTrue($fired[StateEnum::ESTADO_1], "From State 1 with Event A to new State 2");
-        $this->assertTrue($fired[StateEnum::ESTADO_2], "From State 2 with Event A to new State 1");
-    }
-
-    function test_can_do_transition_with_null_action() {
-        $estado_1 = new State(StateEnum::ESTADO_1);
-        $evento_a = new Event(EventEnum::EVENTO_A);
-
-        $sm = new StateMachine();
-
-        //$sm->addState($estado_1);
-        $sm->addTransition($estado_1, $evento_a, $estado_1, null);
-
-        $sm->fireEvent($evento_a);
+        $sm->fireEvent($event_a);
+        $sm->fireEvent($event_a); // This event will fire an unexpected $state_2 state
 
         $this->assertTrue(TRUE);
     }
 
-	function skip_test_can_use_StateMachine() {
-		$estado_1 = new State(StateEnum::ESTADO_1);
-		$estado_2 = new State(StateEnum::ESTADO_2);
-		$estado_3 = new State(StateEnum::ESTADO_3);
+    function test_can_not_do_transition_for_undefined_event() {
+        $this->expectException(InvalidArgumentException::class);
 
-		$evento_a = new Event(EventEnum::EVENTO_A);
-		$evento_b = new Event(EventEnum::EVENTO_B);
-		$evento_c = new Event(EventEnum::EVENTO_C);
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
 
-		$sm = new StateMachine();
+        $sm = new StateMachine();
 
-		$sm->addState($estado_1);
-		$sm->addState($estado_2);
-		$sm->addState($estado_3);
+        //$sm->addState($state_1);
+        $sm->addTransition($state_1, $event_a, $state_1, null);
 
-		$sm->addTransition($estado_1, $evento_a, $estado_2, null);
-		$sm->addTransition($estado_2, $evento_b, $estado_3, null);
-		$sm->addTransition($estado_3, $evento_c, $estado_1, null);
+        $sm->fireEvent($event_b); // Unexpected event event_b on current state
 
-		$sm->dumpStates();
-		$sm->dumpEvents();
+        $this->assertTrue(TRUE);
+    }
+
+    function test_can_do_transitions_from_the_same_state() {
+        $fired[EventEnum::EVENT_A] = false;
+        $fired[EventEnum::EVENT_B] = false;
+
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1, $event_a, $state_1, function() use (&$fired){
+            $fired[EventEnum::EVENT_A] = true;
+        });
+
+        $sm->addTransition($state_1, $event_b, $state_1, function() use (&$fired){
+            $fired[EventEnum::EVENT_B] = true;
+        });
+
+        $sm->fireEvent($event_a);
+        $sm->fireEvent($event_b);
+
+        $this->assertTrue($fired[EventEnum::EVENT_A], "From 1 State on Event A to new 1 State");
+        $this->assertTrue($fired[EventEnum::EVENT_B], "From 1 State on Event B to new 1 State");
+    }
+
+    function test_can_do_transitions_for_the_same_events() {
+        $fired[StateEnum::STATE_1] = false;
+        $fired[StateEnum::STATE_2] = false;
+
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1, $event_a, $state_2, function() use (&$fired){
+            $fired[StateEnum::STATE_1] = true;
+
+        });
+
+        $sm->addTransition($state_2, $event_a, $state_1, function() use (&$fired){
+            $fired[StateEnum::STATE_2] = true;
+        });
+
+        $sm->fireEvent($event_a);
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue($fired[StateEnum::STATE_1], "From 1 State on Event A to new 2 State");
+        $this->assertTrue($fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
+    }
+
+    function test_can_do_transition_with_null_action() {
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        //$sm->addState($state_1);
+        $sm->addTransition($state_1, $event_a, $state_1, null);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue(TRUE);
+    }
+
+    public function test_can_detect_undefined_states_and_events(){
+        $state_1 = StateEnum::STATE_1;
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1+1, $event_a, $state_1, null);
+    }
+
+
+
+	function test_can_use_method_chaining() {
+        $that = $this;
+
+		$state_1 = StateEnum::STATE_1;
+		$state_2 = StateEnum::STATE_2;
+		$state_3 = StateEnum::STATE_3;
+
+		$event_a = EventEnum::EVENT_A;
+		$event_b = EventEnum::EVENT_B;
+		$event_c = EventEnum::EVENT_C;
+
+        echo PHP_EOL;
+        $commonAction = function (StateMachine $sm){
+            echo "My current state is {$sm->getCurrentState()}".
+                 " on {$sm->getCurrentEvent()}".
+                 " and {$sm->getNextState()} will be the next state".PHP_EOL;
+        };
+
+        ($sm = new StateMachine())
+                ->addState($state_1)
+                ->addState($state_2)
+                ->addState($state_3)
+
+                ->addTransition($state_1, $event_a, $state_2, $commonAction)
+                ->addTransition($state_2, $event_b, $state_3, $commonAction)
+                ->addTransition($state_3, $event_c, $state_1, $commonAction)
+
+                ->fireEvent($event_a)
+                ->fireEvent($event_b)
+                ->fireEvent($event_c)
+
+                ->fireEvent($event_a)
+                ->fireEvent($event_b)
+                ->fireEvent($event_c);
+
+		$this->assertTrue(TRUE);
 	}
-
 
     /**
      * Asserts that an array has a specified subset.
