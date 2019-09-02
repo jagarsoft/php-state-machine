@@ -1,0 +1,88 @@
+# What is a State Machine?
+It's a data structure made of two key items:
+* States
+* Transitions
+
+Transitions go from an initial state to a destination state fired by events.
+
+You can view a State Machine as a graph like this [^1]:
+
+![State diagram for a turnstile](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Turnstile_state_machine_colored.svg/320px-Turnstile_state_machine_colored.svg.png)
+
+Also, you can think of it, as an array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
+
+| Current State	| Input	| Next State | Output |
+| :--- | :---: | :--- |
+| Locked | coin | Unlocked | Unlocks the turnstile so that the customer can push through. |
+| | push | Locked | None |
+| Unlocked |coin | Unlocked | None |
+| | push | Locked | When the customer has pushed through, locks the turnstile. |
+
+Bound to the next state, you can set a action function that will be executed when event rised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that.
+
+You can cancel the transition to the next state invoking _cancelTransition_ within action function. Current state will remain.
+
+Action functions are atomic. If you fire new events in an action function, they will be enqueued, and their action functions, if any, will be invoked consecutively.
+
+If you, cancel transition within a nested event, subsequent events may fail if no event is defined for the current state.
+
+Unexpected events for the current state will throw an exception.
+
+You can fire common event from any state.
+
+[^1]: https://en.wikipedia.org/wiki/Finite-state_machine
+
+# Installing
+
+By _Composer_:
+
+```bash
+composer require jagarsoft/php-state-machine
+```
+
+# Getting started
+
+```php
+$state_1 = StateEnum::STATE_1;
+$state_2 = StateEnum::STATE_2;
+$state_3 = StateEnum::STATE_3;
+
+$event_a = EventEnum::EVENT_A;
+$event_b = EventEnum::EVENT_B;
+$event_c = EventEnum::EVENT_C;
+
+echo PHP_EOL;
+$commonAction = function (StateMachine $sm){
+    echo "My current state is {$sm->getCurrentState()}".
+         " on {$sm->getCurrentEvent()}".
+         " and {$sm->getNextState()} will be the next state".PHP_EOL;
+};
+
+(new StateMachine())
+        ->addState($state_1)
+        ->addState($state_2)
+        ->addState($state_3)
+
+        ->addTransition($state_1, $event_a, $state_2, $commonAction)
+        ->addTransition($state_2, $event_b, $state_3, $commonAction)
+        ->addTransition($state_3, $event_c, $state_1, $commonAction)
+
+        ->fireEvent($event_a)
+        ->fireEvent($event_b)
+        ->fireEvent($event_c)
+
+        ->fireEvent($event_a)
+        ->fireEvent($event_b)
+        ->fireEvent($event_c);
+```
+
+Outputs:
+
+```bash
+My current state is 1 on A and 2 will be the next state
+My current state is 2 on B and 3 will be the next state
+My current state is 3 on C and 1 will be the next state
+My current state is 1 on A and 2 will be the next state
+My current state is 2 on B and 3 will be the next state
+My current state is 3 on C and 1 will be the next state
+```

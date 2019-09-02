@@ -2,6 +2,8 @@
 
 namespace jagarsoft\StateMachine;
 
+use jagarsoft\StateMachine\Stubs\StateMachineBuilder;
+
 class StateMachine {
     private const NEXT_STATE = 0;
     private const EXEC_ACTION = 1;
@@ -9,9 +11,18 @@ class StateMachine {
 	protected $sm = array();
 	protected $currentState = null;
     protected $currentEvent = null;
+    protected $nextState = null;
+
+    private $cancelTransition = false;
+    private $transitionInProgress = false;
+    private $eventsQueue = [];
+    private $commonTransition = [];
 	
-	public function __construct(Array $sm = [])
+	public function __construct(StateMachineBuilder $smb = null)
     {
+        if(  $smb != null )
+            $sm = $smb->__invoke();
+
         if( ! empty($sm) ){
             // StateEnum::CURRENT_STATE => [ EventEnum::ON_EVENT => [ StateEnum::NEXT_STATE_2, ActionClosureOrFunction ]  ],
             foreach ($sm as $state => $transition){
@@ -53,27 +64,65 @@ class StateMachine {
         return $this;
     }
 
+    public function addCommonTransition($currentEvent, $nextState, \Closure $execAction = null )
+    {
+        $this->argumentIsValidOrFail($currentEvent);
+        $this->argumentIsValidOrFail($nextState);
+
+        $this->commonTransition[$currentEvent] = [
+                                                    self::NEXT_STATE => $nextState,
+                                                    self::EXEC_ACTION => $execAction
+                                                 ];
+        return $this;
+    }
+
     /**
      * @param $event
      */
     public function fireEvent($event)
     {
+        if( $this->transitionInProgress ){
+            array_push($this->eventsQueue, $event);
+            return $this;
+        }
+        $this->transitionInProgress = true;
+
         $this->argumentIsValidOrFail($event);
         $this->eventMustExistOrFail($event);
 
-        $this->nextState = $this->sm[$this->currentState][$event][self::NEXT_STATE];
+        if( isset($this->commonTransition[$event]) ){
+            $transition = $this->commonTransition[$event];
+        } else {
+            $transition = $this->sm[$this->currentState][$event];
+        }
+        $this->nextState = $transition[self::NEXT_STATE];
 
         $this->stateMustExistOrFail($this->nextState);
 
         $this->currentEvent = $event;
 
-        $action = $this->sm[$this->currentState][$event][self::EXEC_ACTION];
+        $action = $transition[self::EXEC_ACTION];
         if( $action ){
             ($action)($this);
         }
-        $this->currentState = $this->sm[$this->currentState][$event][self::NEXT_STATE];
+
+        if( $this->cancelTransition ){
+            $this->cancelTransition = false;
+        } else {
+            $this->currentState = $transition[self::NEXT_STATE];
+        }
+
+        $this->transitionInProgress = false;
+        $event = array_shift($this->eventsQueue);
+        if(  $event != null ){
+            $this->fireEvent($event);
+        }
 
         return $this;
+    }
+
+    public function cancelTransition(){
+        $this->cancelTransition = true;
     }
 
     public function getCurrentState(){
@@ -112,7 +161,7 @@ class StateMachine {
 
     private function eventMustExistOrFail($event)
     {
-        if( ! isset($this->sm[$this->currentState][$event]) )
+        if( !( isset($this->sm[$this->currentState][$event]) || isset($this->commonTransition[$event]) ) )
             throw new \InvalidArgumentException("Unexpected event {$event} on {$this->currentState} state");
     }
 
