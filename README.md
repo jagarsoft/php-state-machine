@@ -11,7 +11,7 @@ You can view a State Machine as a graph like this [^1]:
 
 Also, you can think of it, as an array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
 
-![state-transition-table](https://github.com/jagarsoft/php-state-machine/tree/master/tests/Stubs/state-transition-table.png)
+![state-transition-table](state-transition-table.png)
 
 Bound to the next state, you can set a action function that will be executed when event rised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that (save data, etc).
 
@@ -32,14 +32,12 @@ You can fire common event from any state, by defining a _addCommonTransition_ wi
 By _Composer_, edit _composer.json_ and add a section _repositories_ (as php-state-machine is not allocate in packagist.com yet):
 
 ```json
-[...]
 "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/jagarsoft/php-state-machine.git"
-        }
-    ]
-[...]
+    {
+        "type": "vcs",
+        "url": "https://github.com/jagarsoft/php-state-machine.git"
+    }
+]
 ```
 
 Then, issue next command:
