@@ -11,33 +11,41 @@ You can view a State Machine as a graph like this [^1]:
 
 Also, you can think of it, as an array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
 
-| Current State	| Input	| Next State | Output |
-| :--- | :---: | :--- |
-| Locked | coin | Unlocked | Unlocks the turnstile so that the customer can push through. |
-| | push | Locked | None |
-| Unlocked |coin | Unlocked | None |
-| | push | Locked | When the customer has pushed through, locks the turnstile. |
+![state-transition-table](https://github.com/jagarsoft/php-state-machine/tree/master/tests/Stubs/state-transition-table.png)
 
-Bound to the next state, you can set a action function that will be executed when event rised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that.
+Bound to the next state, you can set a action function that will be executed when event rised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that (save data, etc).
 
 You can cancel the transition to the next state invoking _cancelTransition_ within action function. Current state will remain.
 
-Action functions are atomic. If you fire new events in an action function, they will be enqueued, and their action functions, if any, will be invoked consecutively.
+Action functions are atomic. If you fire new events in an action function, they will be enqueued, and their action functions, if any, will be invoked consecutively, every time action function return.
 
 If you, cancel transition within a nested event, subsequent events may fail if no event is defined for the current state.
 
 Unexpected events for the current state will throw an exception.
 
-You can fire common event from any state.
+You can fire common event from any state, by defining a _addCommonTransition_ with expected event and destination state only.
 
 [^1]: https://en.wikipedia.org/wiki/Finite-state_machine
 
 # Installing
 
-By _Composer_:
+By _Composer_, edit _composer.json_ and add a section _repositories_ (as php-state-machine is not allocate in packagist.com yet):
+
+```json
+[...]
+"repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jagarsoft/php-state-machine.git"
+        }
+    ]
+[...]
+```
+
+Then, issue next command:
 
 ```bash
-composer require jagarsoft/php-state-machine
+composer require "jagarsoft/php-state-machine @dev"
 ```
 
 # Getting started
