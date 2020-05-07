@@ -198,16 +198,16 @@ class StateMachineTest extends TestCase {
 
     function test_can_do_transition_with_null_action() {
         $state_1 = StateEnum::STATE_1;
-
+        $state_2 = StateEnum::STATE_2;
         $event_a = EventEnum::EVENT_A;
 
         $sm = new StateMachine();
 
-        $sm->addTransition($state_1, $event_a, $state_1, null);
+        $sm->addTransition($state_1, $event_a, $state_2, null);
 
         $sm->fireEvent($event_a);
 
-        $this->assertTrue(TRUE);
+        $this->assertSame($state_2, $sm->getCurrentState());
     }
 
     function test_action_receive_the_same_machine_as_an_argument(){
@@ -281,13 +281,13 @@ class StateMachineTest extends TestCase {
         $sm = new StateMachine();
 
         $sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $sm) use ($event_b, &$fired){
-            $sm->cancelTransition();
-            $sm->fireEvent($event_b);
+            $sm->cancelTransition(); // transition 1 -> 2 is cancelled
+            $sm->fireEvent($event_b);// do transition 1 -> 3 instead
             $fired[EventEnum::EVENT_A] = true;
         });
         $sm->addTransition($state_1, $event_b, $state_3, function (StateMachine $sm) use ($event_c, &$fired){
-            $sm->fireEvent($event_c);
-            $sm->cancelTransition();
+            $sm->fireEvent($event_c);// do transition 1 -> 1 instead
+            $sm->cancelTransition(); // transition 1 -> 3 is cancelled too
             $fired[EventEnum::EVENT_B] = true;
         });
         $sm->addTransition($state_1, $event_c, $state_1, function () use (&$fired){
@@ -336,11 +336,9 @@ class StateMachineTest extends TestCase {
 
         $sm->fireEvent($event_a);
         $this->assertTrue($fired[$sm->getCurrentEvent()]);
-        $fired = false;
 
         $sm->fireEvent($event_b);
         $this->assertTrue($fired[$sm->getCurrentEvent()]);
-        $fired = false;
 
         $sm->fireEvent($event_c);
         $this->assertTrue($fired[$sm->getCurrentEvent()]);
