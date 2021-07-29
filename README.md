@@ -29,21 +29,10 @@ You can fire common event from any state, by defining a _addCommonTransition_ wi
 
 # Installing
 
-By _Composer_, edit _composer.json_ and add a section _repositories_ (as php-state-machine is not allocate in packagist.com yet):
-
-```json
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/jagarsoft/php-state-machine.git"
-    }
-]
-```
-
-Then, issue next command:
+By _Composer_, just issue next command:
 
 ```bash
-composer require "jagarsoft/php-state-machine @dev"
+composer require jagarsoft/php-state-machine
 ```
 
 # Getting started

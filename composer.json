@@ -5,20 +5,28 @@
     "license": "GPLv2",
     "authors": [
         {
-            "name": "jagarsoft",
-            "email": "3843371+jagarsoft@users.noreply.github.com"
+            "name": "Javier Garrido",
+            "email": "jagarsoft2000@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
-    "require": {},
+
+    "require": {
+      "php": "^7.1"
+    },
 	
 	"autoload": {
         "psr-4": {
-            "jagarsoft\\StateMachine\\Stubs\\": "tests/Stubs/",
             "jagarsoft\\StateMachine\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "jagarsoft\\StateMachine\\Stubs\\": "tests/Stubs/"
+        }
+    },
+
     "require-dev": {
         "phpunit/phpunit": "^8.4@dev"
     }
 }
+
