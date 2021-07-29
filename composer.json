@@ -2,11 +2,12 @@
     "name": "jagarsoft/php-state-machine",
     "description": "PHP StateMachine implementation",
     "type": "library",
-    "license": "GPLv2",
+    "license": "GPL-2.0-only",
     "authors": [
         {
             "name": "Javier Garrido",
-            "email": "jagarsoft2000@gmail.com"
+            "email": "jagarsoft2000@gmail.com",
+            "role": "Developer"
         }
     ],
 
