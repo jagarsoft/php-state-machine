@@ -1,3 +1,10 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/?branch=master)
+![Packagist Downloads](https://img.shields.io/packagist/dt/jagarsoft/php-state-machine?style=plastic)
+![language PHP](https://img.shields.io/badge/language-PHP-green.svg?longCache=true&style=plastic)
+[![GPL license](https://img.shields.io/badge/License-GPL-blue.svg?longCache=true&style=plastic)](http://perso.crans.org/besson/LICENSE.html)
+[![badges shields.io](https://img.shields.io/badge/badges-shields.io-green.svg?longCache=true&style=plastic)](https://shields.io)
+
 # What is a State Machine?
 It's a data structure made of two key items:
 * States
@@ -9,7 +16,7 @@ You can view a State Machine as a graph like this [^1]:
 
 ![State diagram for a turnstile](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Turnstile_state_machine_colored.svg/320px-Turnstile_state_machine_colored.svg.png)
 
-Also, you can think of it, as an array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
+Also, you can think of it, as a double-entry array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
 
 ![state-transition-table](state-transition-table.png)
 
@@ -19,11 +26,11 @@ You can cancel the transition to the next state invoking _cancelTransition_ with
 
 Action functions are atomic. If you fire new events in an action function, they will be enqueued, and their action functions, if any, will be invoked consecutively, every time action function return.
 
-If you, cancel transition within a nested event, subsequent events may fail if no event is defined for the current state.
+If you cancel transition within a nested event, subsequent events may fail if no alternative event is defined for the current state.
 
 Unexpected events for the current state will throw an exception.
 
-You can fire common event from any state, by defining a _addCommonTransition_ with expected event and destination state only.
+You can fire common event from any state, by defining a _addCommonTransition_ with expected event and destination state only, but you must add all states yet.
 
 [^1]: https://en.wikipedia.org/wiki/Finite-state_machine
 
@@ -71,7 +78,7 @@ $commonAction = function (StateMachine $sm){
         ->fireEvent($event_c);
 ```
 
-Outputs:
+Output:
 
 ```bash
 My current state is 1 on A and 2 will be the next state
