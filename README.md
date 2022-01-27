@@ -1,5 +1,4 @@
-<p align="center" width="100%">
-![StateMachine Logo](StateMachine-Logo.png)
+![StateMachine Logo](./assets/images/StateMachine-Logo.png "StateMachine Logo")
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/?branch=master)
@@ -8,8 +7,6 @@
 ![language PHP](https://img.shields.io/badge/language-PHP-green.svg?longCache=true&style=plastic)
 [![GPL license](https://img.shields.io/badge/License-GPL-blue.svg?longCache=true&style=plastic)](http://perso.crans.org/besson/LICENSE.html)
 [![badges shields.io](https://img.shields.io/badge/badges-shields.io-green.svg?longCache=true&style=plastic)](https://shields.io)
-
-</p>
 
 # What is a State Machine?
 It's a data structure made of two key items:
