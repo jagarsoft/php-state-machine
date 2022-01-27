@@ -15,7 +15,7 @@ class StateMachine {
 
     private $cancelTransition = false;
     private $transitionInProgress = false;
-    private $eventsQueue = [];
+    private $eventsQueued = [];
     private $commonTransition = [];
 	
 	public function __construct(StateMachineBuilder $smb = null)
@@ -49,15 +49,15 @@ class StateMachine {
         return $this;
     }
 
-    public function addTransition($currState, $currEvent, $nextState, \Closure $execAction = null )
+    public function addTransition($currentState, $currentEvent, $nextState, \Closure $execAction = null )
     {
-        $this->argumentIsValidOrFail($currState);
-        $this->argumentIsValidOrFail($currEvent);
+        $this->argumentIsValidOrFail($currentState);
+        $this->argumentIsValidOrFail($currentEvent);
         $this->argumentIsValidOrFail($nextState);
 
-	    $this->setCurrentStateIfThisIsInitialState($currState);
+        $this->setCurrentStateIfThisIsInitialState($currentState);
 
-        $this->sm[$currState][$currEvent] = [
+        $this->sm[$currentState][$currentEvent] = [
                                                 self::NEXT_STATE => $nextState,
                                                 self::EXEC_ACTION => $execAction
                                             ];
@@ -82,7 +82,7 @@ class StateMachine {
     public function fireEvent($event)
     {
         if( $this->transitionInProgress ){
-            array_push($this->eventsQueue, $event);
+            array_push($this->eventsQueued, $event);
             return $this;
         }
         $this->transitionInProgress = true;
@@ -113,7 +113,7 @@ class StateMachine {
         }
 
         $this->transitionInProgress = false;
-        $event = array_shift($this->eventsQueue);
+        $event = array_shift($this->eventsQueued);
         if(  $event != null ){
             $this->fireEvent($event);
         }
