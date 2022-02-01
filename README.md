@@ -19,13 +19,13 @@ You can view a State Machine as a graph like this [^1]:
 
 ![State diagram for a turnstile](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Turnstile_state_machine_colored.svg/320px-Turnstile_state_machine_colored.svg.png)
 
-Also, you can think of it, as a double-entry array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
+Also, you can think about it, as a double-entry array or _State Transition Table_ indexed by current state and current event. Content will be the next state [^1]:
 
 ![state-transition-table](state-transition-table.png)
 
-Bound to the next state, you can set a action function that will be executed when event rised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that (save data, etc).
+Bound to the next state, you can set a action function that will be executed when event will be raised at the current state, after run, the new state will be set. In foremention example, output may be the action performed by bound function over some servomotor or something like that (save data, etc).
 
-You can cancel the transition to the next state invoking _cancelTransition_ within action function. Current state will remain.
+You can cancel the transition to the next state invoking _cancelTransition_ within action function. Current state will be remain.
 
 Action functions are atomic. If you fire new events in an action function, they will be enqueued, and their action functions, if any, will be invoked consecutively, every time action function return.
 
