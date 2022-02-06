@@ -8,16 +8,16 @@ class StateMachine {
     private const NEXT_STATE = 0;
     private const EXEC_ACTION = 1;
     
-	protected $sm = array();
-	protected $currentState = null;
+    protected $sm = [];
+    protected $currentState = null;
     protected $currentEvent = null;
     protected $nextState = null;
 
     private $cancelTransition = false;
     private $transitionInProgress = false;
     private $eventsQueued = [];
-	
-	public function __construct(StateMachineBuilder $smb = null)
+
+    public function __construct(StateMachineBuilder $smb = null)
     {
         if(  $smb != null )
             $sm = $smb->__invoke();
@@ -39,11 +39,11 @@ class StateMachine {
 
     public function addState($state)
     {
-	    $this->argumentIsValidOrFail($state);
+        $this->argumentIsValidOrFail($state);
 
         $this->setCurrentStateIfThisIsInitialState($state);
 
-        $this->sm[$state] = array();
+        $this->sm[$state] = [];
 
         return $this;
     }
@@ -119,23 +119,28 @@ class StateMachine {
         return $this;
     }
 
-    public function cancelTransition(){
+    public function cancelTransition()
+    {
         $this->cancelTransition = true;
     }
 
-    public function getCurrentState(){
+    public function getCurrentState()
+    {
         return $this->currentState;
     }
 
-    public function getCurrentEvent(){
+    public function getCurrentEvent()
+    {
         return $this->currentEvent;
     }
 
-    public function getNextState(){
+    public function getNextState()
+    {
         return $this->nextState;
     }
 
-    public function getMachineToArray(){
+    public function getMachineToArray()
+    {
         return $this->sm;
     }
 
@@ -175,12 +180,4 @@ class StateMachine {
             $this->currentState = $state;
         }
     }
-
-	public function dumpStates(){
-		var_dump(array_keys($this->sm));
-	}
-	
-	public function dumpEvents(){
-		var_dump($this->sm);
-	}
 }

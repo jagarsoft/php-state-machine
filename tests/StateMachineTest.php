@@ -7,21 +7,23 @@ use jagarsoft\StateMachine\Stubs\EventEnum;
 use jagarsoft\StateMachine\Stubs\StateMachineBuilder;
 
 class StateMachineTest extends TestCase {
-	
-	/**
-	* @link https://github.com/sebastianbergmann/phpunit-documentation/issues/171#issuecomment-67239415
-	*/
-	function test_can_make_StateMachine_class(){
-		try {
-		  $sm = new StateMachine();
-		} catch (\Exception $notExpected) {
-		  $this->fail();
-		}
 
-		$this->assertTrue(TRUE);
-	}
+    /**
+    * @link https://github.com/sebastianbergmann/phpunit-documentation/issues/171#issuecomment-67239415
+    */
+    public function test_can_make_StateMachine_class()
+    {
+        try {
+          $sm = new StateMachine();
+        } catch (\Exception $notExpected) {
+          $this->fail();
+        }
 
-    function test_can_make_StateMachine_from_construct() {
+        $this->assertTrue(TRUE);
+    }
+
+    public function test_can_make_StateMachine_from_construct()
+    {
         $sm = new StateMachine(new StateMachineBuilder());
 
         $this->assertArraySubsetBis([
@@ -34,20 +36,23 @@ class StateMachineTest extends TestCase {
     /**
      * @dataProvider transitionsProvider
      */
-    function test_states_and_events_can_not_be_blank_nor_null($currentState, $currentEvent, $nextState){
+    public function test_states_and_events_can_not_be_blank_nor_null($currentState, $currentEvent, $nextState)
+    {
         $this->expectException(InvalidArgumentException::class);
 
         $sm = new StateMachine();
 
-        $sm->addState(null); // Not NULL
-        $sm->addState("");   // Not Blank
+        $sm->addState($currentState); // Not NULL
+        $sm->addState($nextState);    // Not Blank
 
         $sm->addTransition($currentState, $currentEvent, $nextState);
+
+        $sm->fireEvent($currentEvent);
 
         $this->assertTrue(TRUE);
     }
 
-    public function transitionsProvider()
+    public function transitionsProvider(): array
     {
         $state_1 = StateEnum::STATE_1;
 
@@ -106,19 +111,22 @@ class StateMachineTest extends TestCase {
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
-    function test_can_make_valid_transition() {
+    public function test_can_make_valid_transition()
+    {
         $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
 
         $event_a = EventEnum::EVENT_A;
 
         $sm = new StateMachine();
 
-        $sm->addTransition($state_1, $event_a, $state_1);
+        $sm->addTransition($state_1, $event_a, $state_2);
 
         $this->assertSame($state_1, $sm->getCurrentState());
     }
 
-    function test_can_do_valid_transition() {
+    public function test_can_do_valid_transition()
+    {
         $fired = false;
 
         $state_1 = StateEnum::STATE_1;
@@ -136,7 +144,8 @@ class StateMachineTest extends TestCase {
         $this->assertTrue($fired);
     }
 
-    function test_can_not_do_transition_from_undefined_state() {
+    public function test_can_not_do_transition_from_undefined_state()
+    {
         $this->expectException(InvalidArgumentException::class);
 
         $state_1 = StateEnum::STATE_1;
@@ -154,7 +163,8 @@ class StateMachineTest extends TestCase {
         $this->assertTrue(TRUE);
     }
 
-    function test_can_not_do_transition_on_undefined_event() {
+    public function test_can_not_do_transition_on_undefined_event()
+    {
         $this->expectException(InvalidArgumentException::class);
 
         $state_1 = StateEnum::STATE_1;
@@ -171,7 +181,8 @@ class StateMachineTest extends TestCase {
         $this->assertTrue(TRUE);
     }
 
-    function test_can_do_transitions_from_the_same_state() {
+    public function test_can_do_transitions_from_the_same_state()
+    {
         $fired[EventEnum::EVENT_A] = false;
         $fired[EventEnum::EVENT_B] = false;
 
@@ -197,7 +208,8 @@ class StateMachineTest extends TestCase {
         $this->assertTrue($fired[EventEnum::EVENT_B], "From 1 State on Event B to new 1 State");
     }
 
-    function test_can_do_transitions_on_the_same_events() {
+    public function test_can_do_transitions_on_the_same_events()
+    {
         $fired[StateEnum::STATE_1] = false;
         $fired[StateEnum::STATE_2] = false;
 
@@ -223,23 +235,27 @@ class StateMachineTest extends TestCase {
         $this->assertTrue($fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
     }
 
-    function test_can_do_transition_with_null_action() {
+    public function test_can_do_transition_with_null_action()
+    {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;
+
         $event_a = EventEnum::EVENT_A;
 
         $sm = new StateMachine();
 
         $sm->addState($state_1);
         $sm->addState($state_2);
-        $sm->addTransition($state_1, $event_a, $state_2, null);
+
+        $sm->addTransition($state_1, $event_a, $state_2);
 
         $sm->fireEvent($event_a);
 
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
-    function test_action_receive_the_same_machine_as_an_argument(){
+    public function test_action_receive_the_same_machine_as_an_argument()
+    {
         $that = $this;
 
         $state_1 = StateEnum::STATE_1;
@@ -251,14 +267,17 @@ class StateMachineTest extends TestCase {
 
         $actual_sm->addState($state_1);
         $actual_sm->addState($state_2);
-        $actual_sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $expected_sm) use ($that, $actual_sm){
+
+        $actual_sm->addTransition($state_1, $event_a, $state_2,
+            function (StateMachine $expected_sm) use ($that, $actual_sm) {
             $that->assertSame($expected_sm, $actual_sm);
         });
 
         $actual_sm->fireEvent($event_a);
     }
 
-    function test_can_cancel_transition(){
+    public function test_can_cancel_transition()
+    {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;
 
@@ -266,14 +285,20 @@ class StateMachineTest extends TestCase {
 
         $sm = new StateMachine();
 
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+
         $sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $sm){
             $sm->cancelTransition();
         });
 
+        $sm->fireEvent($event_a);
+
         $this->assertSame($state_1, $sm->getCurrentState());
     }
 
-    function test_fire_nested_transitions_are_enqueued() {
+    public function test_fire_nested_transitions_are_enqueued()
+    {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;
         $state_3 = StateEnum::STATE_3;
@@ -283,6 +308,10 @@ class StateMachineTest extends TestCase {
         $event_c = EventEnum::EVENT_C;
 
         $sm = new StateMachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+        $sm->addState($state_3);
 
         $sm->addTransition($state_1, $event_a, $state_2);
         $sm->addTransition($state_2, $event_b, $state_3, function (StateMachine $sm) use ($event_c){
@@ -296,7 +325,8 @@ class StateMachineTest extends TestCase {
         $this->assertSame($state_1, $sm->getCurrentState());
     }
 
-    function test_can_cancel_nested_transitions(){
+    public function test_can_cancel_nested_transitions_in_any_moment()
+    {
         $fired[EventEnum::EVENT_A] = false;
         $fired[EventEnum::EVENT_B] = false;
         $fired[EventEnum::EVENT_C] = false;
@@ -314,13 +344,14 @@ class StateMachineTest extends TestCase {
         $sm->addState($state_1);
         $sm->addState($state_2);
         $sm->addState($state_3);
+
         $sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $sm) use ($event_b, &$fired){
             $sm->cancelTransition(); // transition 1 -> 2 is cancelled
-            $sm->fireEvent($event_b);// do transition 1 -> 3 instead
+            $sm->fireEvent($event_b);// do transition 1 -> 3 instead, enqueued
             $fired[EventEnum::EVENT_A] = true;
         });
         $sm->addTransition($state_1, $event_b, $state_3, function (StateMachine $sm) use ($event_c, &$fired){
-            $sm->fireEvent($event_c);// do transition 1 -> 1 instead
+            $sm->fireEvent($event_c);// do transition 1 -> 1 instead, enqueued
             $sm->cancelTransition(); // transition 1 -> 3 is cancelled too
             $fired[EventEnum::EVENT_B] = true;
         });
@@ -340,14 +371,11 @@ class StateMachineTest extends TestCase {
     /**
      * @dataProvider initialStatesProvider
      */
-    function test_can_fire_event_from_any_state($state_1, $state_2, $state_3){
+    public function test_can_fire_event_from_any_state($state_1, $state_2, $state_3)
+    {
         $fired[EventEnum::EVENT_A] = false;
         $fired[EventEnum::EVENT_B] = false;
         $fired[EventEnum::EVENT_C] = false;
-
-        $state_1 = StateEnum::STATE_1;
-        $state_2 = StateEnum::STATE_2;
-        $state_3 = StateEnum::STATE_3;
 
         $event_a = EventEnum::EVENT_A;
         $event_b = EventEnum::EVENT_B;
@@ -367,7 +395,6 @@ class StateMachineTest extends TestCase {
            ->addCommonTransition($event_b, $state_3, $commonAction)
            ->addCommonTransition($event_c, $state_3, $commonAction);
 
-
         $sm->fireEvent($event_a);
         $this->assertTrue($fired[$sm->getCurrentEvent()]);
 
@@ -378,7 +405,7 @@ class StateMachineTest extends TestCase {
         $this->assertTrue($fired[$sm->getCurrentEvent()]);
     }
 
-    public function initialStatesProvider()
+    public function initialStatesProvider(): array
     {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;
@@ -391,14 +418,15 @@ class StateMachineTest extends TestCase {
         );
     }
 
-    function test_can_use_method_chaining() {
-		$state_1 = StateEnum::STATE_1;
-		$state_2 = StateEnum::STATE_2;
-		$state_3 = StateEnum::STATE_3;
+    public function test_can_use_method_chaining()
+    {
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+        $state_3 = StateEnum::STATE_3;
 
-		$event_a = EventEnum::EVENT_A;
-		$event_b = EventEnum::EVENT_B;
-		$event_c = EventEnum::EVENT_C;
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+        $event_c = EventEnum::EVENT_C;
 
         echo PHP_EOL;
         $commonAction = function (StateMachine $sm){
@@ -424,8 +452,8 @@ class StateMachineTest extends TestCase {
                 ->fireEvent($event_b)
                 ->fireEvent($event_c);
 
-		$this->assertTrue(TRUE);
-	}
+        $this->assertTrue(TRUE);
+    }
 
     /**
      * Asserts that an array has a specified subset.
