@@ -63,20 +63,28 @@ class StateMachineTest extends TestCase {
         );
     }
 
-    function test_can_set_currentState_from_first_addState_or_addTransition(){
+    public function test_can_set_currentState_from_first_addState()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $this->assertSame($state_1, $sm->getCurrentState());
+    }
+
+    public function test_can_set_currentState_from_first_addTransition()
+    {
         $state_1 = StateEnum::STATE_1;
 
         $event_a = EventEnum::EVENT_A;
 
-        $sm_A = new StateMachine();
+        $sm = new StateMachine();
 
-        $sm_A->addState($state_1);
-        $this->assertSame($state_1, $sm_A->getCurrentState());
+        $sm->addTransition($state_1, $event_a, $state_1);
 
-        $sm_B = new StateMachine();
-
-        $sm_B->addTransition($state_1, $event_a, $state_1);
-        $this->assertSame($state_1, $sm_B->getCurrentState());
+        $this->assertSame($state_1, $sm->getCurrentState());
     }
 
     function test_can_make_valid_transition() {
