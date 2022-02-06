@@ -16,7 +16,6 @@ class StateMachine {
     private $cancelTransition = false;
     private $transitionInProgress = false;
     private $eventsQueued = [];
-    private $commonTransition = [];
 	
 	public function __construct(StateMachineBuilder $smb = null)
     {
@@ -69,10 +68,11 @@ class StateMachine {
         $this->argumentIsValidOrFail($currentEvent);
         $this->argumentIsValidOrFail($nextState);
 
-        $this->commonTransition[$currentEvent] = [
-                                                    self::NEXT_STATE => $nextState,
-                                                    self::EXEC_ACTION => $execAction
-                                                 ];
+        $states = array_keys($this->sm);
+        foreach ($states as $state) {
+            $this->addTransition($state, $currentEvent, $nextState, $execAction);
+        }
+
         return $this;
     }
 
@@ -91,11 +91,8 @@ class StateMachine {
 
         $this->eventMustExistOrFail($event);
 
-        if( isset($this->commonTransition[$event]) ){
-            $transition = $this->commonTransition[$event];
-        } else {
-            $transition = $this->sm[$this->currentState][$event];
-        }
+        $transition = $this->sm[$this->currentState][$event];
+
         $this->nextState = $transition[self::NEXT_STATE];
 
         $this->stateMustExistOrFail($this->nextState);
@@ -162,7 +159,7 @@ class StateMachine {
 
     private function eventMustExistOrFail($event)
     {
-        if( !( isset($this->sm[$this->currentState][$event]) || isset($this->commonTransition[$event]) ) )
+        if( !( isset($this->sm[$this->currentState][$event]) ) )
             throw new \InvalidArgumentException("Unexpected event {$event} on {$this->currentState} state");
     }
 

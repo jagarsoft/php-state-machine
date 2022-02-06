@@ -87,6 +87,25 @@ class StateMachineTest extends TestCase {
         $this->assertSame($state_1, $sm->getCurrentState());
     }
 
+    public function test_must_set_addState_along_addCommonTransition()
+    {
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+
+        $sm->addCommonTransition($event_a, $state_2);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertSame($state_2, $sm->getCurrentState());
+    }
+
     function test_can_make_valid_transition() {
         $state_1 = StateEnum::STATE_1;
 
