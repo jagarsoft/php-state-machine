@@ -81,13 +81,14 @@ class StateMachine {
      */
     public function fireEvent($event)
     {
+        $this->argumentIsValidOrFail($event);
+
         if( $this->transitionInProgress ){
             array_push($this->eventsQueued, $event);
             return $this;
         }
         $this->transitionInProgress = true;
 
-        $this->argumentIsValidOrFail($event);
         $this->eventMustExistOrFail($event);
 
         if( isset($this->commonTransition[$event]) ){
@@ -167,8 +168,8 @@ class StateMachine {
 
     private function stateMustExistOrFail($state)
     {
-        if( ! isset($this->sm[$this->currentState]) )
-            throw new \InvalidArgumentException("Event {$this->currentEvent} fired an unexpected {$this->currentState} state");
+        if( ! isset($this->sm[$state]) )
+            throw new \InvalidArgumentException("Event '{$this->currentEvent}' fired an unexpected '{$state}' state");
     }
 
     private function setCurrentStateIfThisIsInitialState($state): void

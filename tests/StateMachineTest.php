@@ -203,6 +203,8 @@ class StateMachineTest extends TestCase {
 
         $sm = new StateMachine();
 
+        $sm->addState($state_1);
+        $sm->addState($state_2);
         $sm->addTransition($state_1, $event_a, $state_2, null);
 
         $sm->fireEvent($event_a);
@@ -220,6 +222,8 @@ class StateMachineTest extends TestCase {
 
         $actual_sm = new StateMachine();
 
+        $actual_sm->addState($state_1);
+        $actual_sm->addState($state_2);
         $actual_sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $expected_sm) use ($that, $actual_sm){
             $that->assertSame($expected_sm, $actual_sm);
         });
@@ -280,6 +284,9 @@ class StateMachineTest extends TestCase {
 
         $sm = new StateMachine();
 
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+        $sm->addState($state_3);
         $sm->addTransition($state_1, $event_a, $state_2, function (StateMachine $sm) use ($event_b, &$fired){
             $sm->cancelTransition(); // transition 1 -> 2 is cancelled
             $sm->fireEvent($event_b);// do transition 1 -> 3 instead
