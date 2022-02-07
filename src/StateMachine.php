@@ -119,6 +119,17 @@ class StateMachine {
         return $this;
     }
 
+    public function can($event)
+    {
+        try{
+            $this->eventMustExistOrFail($event);
+            $can = true;
+        } catch(\InvalidArgumentException $e){
+            $can = false;
+        }
+        return $can;
+    }
+
     public function cancelTransition()
     {
         $this->cancelTransition = true;

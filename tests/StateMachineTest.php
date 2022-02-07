@@ -254,6 +254,23 @@ class StateMachineTest extends TestCase {
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
+    public function test_transition_can_be_proven()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_1);
+
+        $this->assertTrue($sm->can($event_a));
+        $this->assertFalse($sm->can($event_b));
+    }
+
     public function test_action_receive_the_same_machine_as_an_argument()
     {
         $that = $this;
