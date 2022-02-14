@@ -10,9 +10,12 @@
             "role": "Developer"
         }
     ],
-
+    
+    "prefer-stable": true,
+    "minimum-stability": "dev",
+    
     "require": {
-      "php": "^7.4 || ^8.0"
+      "php": "^7.4"
     },
 	
 	"autoload": {
@@ -27,7 +30,7 @@
     },
 
     "require-dev": {
-        "phpunit/phpunit": "^8.4@dev"
+        "phpunit/phpunit": "^8.0"
     }
 }
 

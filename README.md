@@ -9,7 +9,7 @@
 	<a href="https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/?branch=master"><img src="https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/coverage.png?b=master" alt="Code Coverage"></a>
 	<a href="https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/build-status/master"><img src="https://scrutinizer-ci.com/g/jagarsoft/php-state-machine/badges/build.png?b=master" alt="Build Status"></a>
 	<a href="https://packagist.org/packages/jagarsoft/php-state-machine"><img src="https://img.shields.io/packagist/dt/jagarsoft/php-state-machine?style=plastic" alt="Packagist Downloads"></a>
-	<a href="https://phpstan.org/"><img src="https://img.shields.io/badge/language-PHP-green.svg?longCache=true&style=plastic" alt="language PHP"></a>
+	<a href="https://www.php.net/"><img src="https://img.shields.io/badge/language-PHP-green.svg?longCache=true&style=plastic" alt="language PHP"></a>
     <a href="http://perso.crans.org/besson/LICENSE.html"><img src="https://img.shields.io/badge/License-GPL-blue.svg?longCache=true&style=plastic" alt="GPL license"></a>
     <a href="https://shields.io"><img src="https://img.shields.io/badge/badges-shields.io-green.svg?longCache=true&style=plastic" alt="Badges shields.io"></a>
 </p>
