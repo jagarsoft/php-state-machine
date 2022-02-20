@@ -4,10 +4,11 @@ use PHPUnit\Framework\TestCase;
 use jagarsoft\StateMachine\StateMachine;
 use jagarsoft\StateMachine\Stubs\StateEnum;
 use jagarsoft\StateMachine\Stubs\EventEnum;
-use jagarsoft\StateMachine\Stubs\StateMachineBuilder;
+use jagarsoft\StateMachine\Stubs\StateMachineArrayBuilder;
+use jagarsoft\StateMachine\Stubs\StateMachineWinzouBuilder;
 
-class StateMachineTest extends TestCase {
-
+class StateMachineTest extends TestCase
+{
     /**
     * @link https://github.com/sebastianbergmann/phpunit-documentation/issues/171#issuecomment-67239415
     */
@@ -24,13 +25,67 @@ class StateMachineTest extends TestCase {
 
     public function test_can_make_StateMachine_from_construct()
     {
-        $sm = new StateMachine(new StateMachineBuilder());
+        $sm = new StateMachine(new StateMachineArrayBuilder());
 
         $this->assertArraySubsetBis([
             StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2, null ]  ],
             StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3, null ]  ],
             StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1, null ]  ],
         ], $sm->getMachineToArray());
+    }
+
+
+    public function test_can_make_StateMachine_from_StateMachineWinzouBuilder()
+    {
+        //$this->markTestSkipped("test_can_make_StateMachine_from_StateMachineWinzouBuilder pending");
+
+        $sm = new StateMachine(new StateMachineWinzouBuilder());
+
+        $this->assertArraySubsetBis([
+            'checkout' =>   [ 'create' => ['pending'], 'confirm' => ['confirmed'] ],
+            'pending' =>    [ 'confirm' => ['confirmed', null] ],
+            'confirmed' =>  [ 'cancel' => ['cancelled'] ],
+            'cancelled' =>  [],
+        ], $sm->getMachineToArray());
+
+        // Current state is checkout
+        $this->assertSame('checkout', $sm->getCurrentState());
+
+        // Return true, we can apply this transition
+        $this->assertTrue($sm->can('create'));
+
+        // Return true, this transitions is applied
+        // In addition, callback 'from-checkout' is called
+        $sm->fireEvent('create');
+
+        // Current state is pending
+        $this->assertSame('pending', $sm->getCurrentState());
+
+        // All possible transitions for pending state are just "confirm"
+        //var_dump($stateMachine->getPossibleTransitions());
+
+        // Return false, this transition is not applied
+        // 2nd argument is soft mode: it returns false instead of throwing an exception
+        //var_dump($stateMachine->apply('cancel', true));
+
+        // Current state is still pending
+        $this->assertSame('pending', $sm->getCurrentState());
+
+        // Return true, this transition is applied
+        // In addition, callback 'on-confirm' is called
+        // And callback 'confirm-date' calls the method 'setConfirmedNow' on the object itself
+        $sm->fireEvent('confirm');
+
+        // Current state is confirmed
+        $this->assertSame('confirmed', $sm->getCurrentState());
+
+        // Returns false, as it is guarded
+        $this->assertFalse($sm->can('cancel'));
+
+        // Current state is still confirmed
+        $this->assertSame('confirmed', $sm->getCurrentState());
+
+        echo PHP_EOL;
     }
 
     /**
@@ -433,6 +488,158 @@ class StateMachineTest extends TestCase {
             array($state_2, $state_3, $state_1),
             array($state_3, $state_1, $state_2),
         );
+    }
+
+	public function test_catch_null_even_in_nested_transition()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $action = function (StateMachine $sm) {
+            $sm->fireEvent(null);
+        };
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_1, $action);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue(True);
+    }
+
+	public function test_can_modify_machine_dynamically()
+    {
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+        $state_3 = StateEnum::STATE_3;
+
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+        $event_c = EventEnum::EVENT_C;
+
+        $fired = false;
+        $action = function () use (&$fired) {
+            $fired = true;
+        };
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+        $sm->addCommonTransition($event_a, $state_2);
+
+        $sm->fireEvent($event_a); // Running ...
+
+        $sm->addState($state_3);
+        $sm->addCommonTransition($event_b, $state_3);
+        $sm->addCommonTransition($event_c, $state_3, $action);
+
+        $sm->fireEvent($event_b);
+        $sm->fireEvent($event_c);
+
+        $this->assertTrue($fired);
+    }
+
+	public function test_can_change_action_function()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $fired_a = false;
+        $action_a = function () use (&$fired_a) {
+            $fired_a = true;
+        };
+
+        $fired_b = false;
+        $action_b = function () use (&$fired_b) {
+            $fired_b = true;
+        };
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1, $event_a, $state_1, $action_a);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue($fired_a);
+        $fired_a = false;
+
+        $sm->addTransition($state_1, $event_a, $state_1, $action_b);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertFalse($fired_a);
+        $this->assertTrue($fired_b);
+    }
+
+	public function test_can_use_GuardDecorator()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $firedGuard = false;
+        $guard = function() use (&$firedGuard) {
+            $firedGuard = true;
+            return false;
+        };
+
+        $firedAction = false;
+        $action = function() use (&$firedAction) {
+            $firedAction = true;
+        };
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_1, [
+            StateMachine::EXEC_GUARD => $guard,
+            StateMachine::EXEC_ACTION => $action
+        ]);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue($firedGuard, true);
+        $this->assertFalse($firedAction, false);
+    }
+
+	public function test_can_use_BeforeAfterDecorator()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $firedBefore = false;
+        $before = function() use (&$firedBefore) {
+            $firedBefore = true;
+        };
+
+        $firedAfter = false;
+        $after = function() use (&$firedAfter) {
+            $firedAfter = true;
+        };
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_1, [
+            StateMachine::EXEC_BEFORE => $before,
+            StateMachine::EXEC_AFTER => $after
+        ]);
+
+        $sm->fireEvent($event_a);
+
+        $this->assertTrue($firedBefore, true);
+        $this->assertTrue($firedAfter, true);
     }
 
     public function test_can_use_method_chaining()
