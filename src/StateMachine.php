@@ -16,10 +16,10 @@ class StateMachine {
     protected $eventsQueued = [];
 
     public const NEXT_STATE = 0;
-    public const EXEC_ACTION = 1;
-    public const EXEC_GUARD = 2;
-    public const EXEC_BEFORE = 3;
-    public const EXEC_AFTER = 4;
+    public const EXEC_ACTION = 'EXEC_ACTION';
+    public const EXEC_GUARD = 'EXEC_GUARD';
+    public const EXEC_BEFORE = 'EXEC_BEFORE';
+    public const EXEC_AFTER = 'EXEC_AFTER';
 
     public function __construct(StateMachineBuilder $smb = null)
     {
@@ -27,25 +27,13 @@ class StateMachine {
             $this->smb = $smb->from();
 
         if( ! empty($this->smb) ){
-            // StateEnum::CURRENT_STATE => [ EventEnum::ON_EVENT => [ StateEnum::NEXT_STATE_2, ActionClosureOrFunction ]  ],
+            // StateEnum::CURRENT_STATE => [ EventEnum::ON_EVENT => [ NEXT_STATE, ActionClosureOrFunction ] ],
             foreach ($this->smb as $state => $transition){
                 $this->addState($state);
                 foreach ($transition as $onEvent => $nextStateAndAction) {
-                    $action = $guard = $before = $after = null;
-                    if( array_key_exists(self::EXEC_ACTION, $nextStateAndAction) ) {
-                        $action = $nextStateAndAction[self::EXEC_ACTION];
-                    }
-                    if( array_key_exists(self::EXEC_GUARD, $nextStateAndAction) ) {
-                        $guard = $nextStateAndAction[self::EXEC_GUARD];
-                    }
-                    if( array_key_exists(self::EXEC_BEFORE, $nextStateAndAction) ) {
-                        $before = $nextStateAndAction[self::EXEC_BEFORE];
-                    }
-                    if( array_key_exists(self::EXEC_AFTER, $nextStateAndAction) ) {
-                        $after = $nextStateAndAction[self::EXEC_AFTER];
-                    }
-                    $this->addTransition($state, $onEvent, $nextStateAndAction[self::NEXT_STATE],
-                                            $action, $guard, $before, $after);
+                    $this->addTransition($state, $onEvent,
+                        $nextStateAndAction[self::NEXT_STATE],
+                        $nextStateAndAction);
                 }
             }
         }
@@ -150,9 +138,11 @@ class StateMachine {
             }
         }
         if ( ! $wasGuarded) {
-            $before = $transition[self::EXEC_BEFORE];
-            if ($before) {
-                ($before)($this);
+            if( array_key_exists(self::EXEC_BEFORE, $transition) ) {
+                $before = $transition[self::EXEC_BEFORE];
+                if ($before) {
+                    ($before)($this);
+                }
             }
             if( array_key_exists(self::EXEC_ACTION, $transition) ) {
                 $action = $transition[self::EXEC_ACTION];
@@ -160,9 +150,11 @@ class StateMachine {
                     ($action)($this);
                 }
             }
-            $after = $transition[self::EXEC_AFTER];
-            if ($after) {
-                ($after)($this);
+            if( array_key_exists(self::EXEC_AFTER, $transition) ) {
+                $after = $transition[self::EXEC_AFTER];
+                if ($after) {
+                    ($after)($this);
+                }
             }
         }
 

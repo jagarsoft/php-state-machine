@@ -2,6 +2,7 @@
 
 namespace jagarsoft\StateMachine\Stubs;
 
+use jagarsoft\StateMachine\StateMachine;
 use jagarsoft\StateMachine\Stubs\StateEnum;
 use jagarsoft\StateMachine\Stubs\EventEnum;
 use jagarsoft\StateMachine\StateMachineBuilder;

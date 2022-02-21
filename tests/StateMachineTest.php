@@ -28,22 +28,20 @@ class StateMachineTest extends TestCase
         $sm = new StateMachine(new StateMachineArrayBuilder());
 
         $this->assertArraySubsetBis([
-            StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2, null ]  ],
-            StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3, null ]  ],
-            StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1, null ]  ],
+            StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2 ] ],
+            StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3 ] ],
+            StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 ] ],
         ], $sm->getMachineToArray());
     }
 
 
     public function test_can_make_StateMachine_from_StateMachineWinzouBuilder()
     {
-        //$this->markTestSkipped("test_can_make_StateMachine_from_StateMachineWinzouBuilder pending");
-
         $sm = new StateMachine(new StateMachineWinzouBuilder());
 
         $this->assertArraySubsetBis([
             'checkout' =>   [ 'create' => ['pending'], 'confirm' => ['confirmed'] ],
-            'pending' =>    [ 'confirm' => ['confirmed', null] ],
+            'pending' =>    [ 'confirm' => ['confirmed'] ],
             'confirmed' =>  [ 'cancel' => ['cancelled'] ],
             'cancelled' =>  [],
         ], $sm->getMachineToArray());
