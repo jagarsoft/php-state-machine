@@ -307,6 +307,42 @@ class StateMachineTest extends TestCase
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
+    public function test_transition_can_be_proven_with_a_valid_event()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->can("");
+        $sm->can(null);
+        $this->assertFalse($sm->can($event_a));
+
+    }
+
+    public function test_transition_can_be_proven_with_a_valid_nextstate()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_2); // undefined next state
+
+        $sm->can($event_a);
+    }
+
     public function test_transition_can_be_proven()
     {
         $state_1 = StateEnum::STATE_1;

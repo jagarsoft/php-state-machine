@@ -40,10 +40,13 @@ class StateMachine {
     }
 
 	public function to(){
+        // TODO: pendig of implementation
+        /*
         if( $this->smb == null )
             return;
 
         $this->smb->to($this->getMachineToArray());
+        */
     }
 
     public function addState($state)
@@ -124,10 +127,9 @@ class StateMachine {
         $transition = $this->sm[$this->currentState][$event];
 
         $this->nextState = $transition[self::NEXT_STATE];
+        $this->currentEvent = $event;
 
         $this->stateMustExistOrFail($this->nextState);
-
-        $this->currentEvent = $event;
 
         $wasGuarded = false;
         if( array_key_exists(self::EXEC_GUARD, $transition) ){
@@ -175,6 +177,8 @@ class StateMachine {
 
     public function can($event)
     {
+        $this->argumentIsValidOrFail($event);
+
         try{
             $this->eventMustExistOrFail($event);
         } catch(\InvalidArgumentException $e){
@@ -182,6 +186,12 @@ class StateMachine {
         }
 
         $transition = $this->sm[$this->currentState][$event];
+
+        $this->nextState = $transition[self::NEXT_STATE];
+        $this->currentEvent = $event;
+
+        $this->stateMustExistOrFail($this->nextState);
+
         if( ! array_key_exists(self::EXEC_GUARD, $transition)){
             return true;
         }
@@ -256,7 +266,7 @@ class StateMachine {
     private function stateMustExistOrFail($state)
     {
         if( ! isset($this->sm[$state]) )
-            throw new \InvalidArgumentException("Event '{$this->currentEvent}' fired an unexpected '{$state}' state");
+            throw new \InvalidArgumentException("Event '{$this->currentEvent}' fired to unadded '{$state}' state");
     }
 
     private function setCurrentStateIfThisIsInitialState($state): void
