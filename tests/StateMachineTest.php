@@ -307,6 +307,23 @@ class StateMachineTest extends TestCase
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
+    public function test_execAction_argument_must_be_Closure_or_array()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+
+        $sm->addTransition($state_1, $event_a, $state_2, 'This is not a valid argument');
+    }
+
     public function test_transition_can_be_proven_with_a_valid_event()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -666,7 +683,9 @@ class StateMachineTest extends TestCase
         $sm->addState($state_1);
 
         $sm->addTransition($state_1, $event_a, $state_1, [
+            StateMachine::EXEC_GUARD => null, // it's optional, really
             StateMachine::EXEC_BEFORE => $before,
+            StateMachine::EXEC_ACTION => null, // it's optional, really
             StateMachine::EXEC_AFTER => $after
         ]);
 
