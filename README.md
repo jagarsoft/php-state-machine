@@ -97,3 +97,21 @@ My current state is 1 on A and 2 will be the next state
 My current state is 2 on B and 3 will be the next state
 My current state is 3 on C and 1 will be the next state
 ```
+
+# Features
+
+_StateMachine_ gives you the followings features:
+
+1. You can prove a _event_ before it be fired
+1. You can execute a _guard_ in order to cancel transition
+1. You can execute a function _before_ and/or _after_ action
+1. You can create _StateMachine_ from _Array_ or _Winzou_ config
+
+Coming soon... you will be able to create _StateMachine_ from other sources, for instance, DOT definition.
+_StateMachine_ so created is fully functional and will respond to their events.
+Moveover, you will be able to save your current _StateMachine_ to that format too.
+
+
+# Licence
+
+GNU General Public License v2.0 only
