@@ -3,7 +3,6 @@
 namespace jagarsoft\StateMachine;
 
 use jagarsoft\StateMachine\StateMachineBuilder;
-use phpDocumentor\Reflection\Types\Array_;
 
 class StateMachine
 {
@@ -13,14 +12,14 @@ class StateMachine
     public const EXEC_BEFORE = 'EXEC_BEFORE';
     public const EXEC_AFTER = 'EXEC_AFTER';
 
-    protected $sm = [];
+    protected array $sm = [];
     protected $currentState = null;
     protected $currentEvent = null;
     protected $nextState = null;
 
-    protected $cancelTransition = false;
-    protected $transitionInProgress = false;
-    protected $eventsQueued = [];
+    protected bool $cancelTransition = false;
+    protected bool $transitionInProgress = false;
+    protected array $eventsQueued = [];
 
     public function __construct(StateMachineBuilder $smb = null)
     {
@@ -42,7 +41,7 @@ class StateMachine
 
     public function to()
     {
-        // TODO: pendig of implementation
+        // TODO: pending of implementation
         /*
         if( $this->smb == null )
             return;
@@ -51,7 +50,7 @@ class StateMachine
         */
     }
 
-    public function addState($state)
+    public function addState($state): self
     {
         $this->argumentIsValidOrFail($state);
 
@@ -62,7 +61,7 @@ class StateMachine
         return $this;
     }
 
-    public function addTransition($currentState, $currentEvent, $nextState, /*\Closure|array*/ $execAction = null)
+    public function addTransition($currentState, $currentEvent, $nextState, /*\Closure|array*/ $execAction = null): self
     {
         $this->argumentIsValidOrFail($currentState);
         $this->argumentIsValidOrFail($currentEvent);
@@ -73,20 +72,28 @@ class StateMachine
         if( $execAction === null ){
             $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ];
         } elseif (is_array($execAction)) {
+            $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ];
             $arrayActions = $execAction;
-            $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ] + $arrayActions;
+            foreach ($arrayActions as $exec_action => $action) {
+                if( in_array($exec_action, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true) ){
+                    if( $action === null )
+                        continue;
+                    $this->argumentMustBeClosureOrFail($action);
+                }
+                $this->sm[$currentState][$currentEvent][$exec_action] = $action;
+            }
         } elseif($execAction instanceof \Closure) {
             $this->sm[$currentState][$currentEvent] = [
-                self::NEXT_STATE => $nextState,
-                self::EXEC_ACTION => $execAction
-            ];
+                                                        self::NEXT_STATE => $nextState,
+                                                        self::EXEC_ACTION => $execAction
+                                                    ];
         } else {
-            throw new \InvalidArgumentException('execAction argument must be Closure or array');
+            $this->argumentMustBeClosureOrFail(null);
         }
         return $this;
     }
 
-    public function addCommonTransition($currentEvent, $nextState, /*\Closure|array*/ $execAction = null)
+    public function addCommonTransition($currentEvent, $nextState, /*\Closure|array*/ $execAction = null): self
     {
         $this->argumentIsValidOrFail($currentEvent);
         $this->argumentIsValidOrFail($nextState);
@@ -101,9 +108,10 @@ class StateMachine
 
     /**
      * @param $event
+     * @return StateMachine
      * @noinspection PhpArrayPushWithOneElementInspection
      */
-    public function fireEvent($event)
+    public function fireEvent($event): self
     {
         $this->argumentIsValidOrFail($event);
 
@@ -145,7 +153,7 @@ class StateMachine
         return $this;
     }
 
-    private function execGuard($transition)
+    private function execGuard($transition): bool
     {
         $wasGuarded = false;
         if( array_key_exists(self::EXEC_GUARD, $transition) ){
@@ -168,7 +176,7 @@ class StateMachine
         }
     }
 
-    public function can($event)
+    public function can($event): bool
     {
         $this->argumentIsValidOrFail($event);
 
@@ -195,7 +203,7 @@ class StateMachine
         return $wasGuarded;
     }
 
-    public function cancelTransition()
+    public function cancelTransition(): void
     {
         $this->cancelTransition = true;
     }
@@ -215,7 +223,7 @@ class StateMachine
         return $this->nextState;
     }
 
-    public function getMachineToArray()
+    public function getMachineToArray(): array
     {
         return $this->sm;
     }
@@ -228,6 +236,12 @@ class StateMachine
     /*public function getPossibleTransitions(){
         // TODO: pending to implementation
     }*/
+
+    private function setCurrentStateIfThisIsInitialState($state): void
+    {
+        if( $this->currentState == null)
+            $this->currentState = $state;
+    }
 
     private function argumentIsValidOrFail($arg): void
     {
@@ -259,10 +273,9 @@ class StateMachine
             throw new \InvalidArgumentException("Event '{$this->currentEvent}' fired to unadded '{$state}' state");
     }
 
-    private function setCurrentStateIfThisIsInitialState($state): void
+    private function argumentMustBeClosureOrFail($action): void
     {
-        if( $this->currentState == null){
-            $this->currentState = $state;
-        }
+        if( !($action instanceof \Closure) )
+            throw new \InvalidArgumentException('execAction argument must be Closure or array');
     }
 }

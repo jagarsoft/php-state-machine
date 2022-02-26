@@ -15,7 +15,7 @@ class StateMachineTest extends TestCase
     public function test_can_make_StateMachine_class()
     {
         try {
-          $sm = new StateMachine();
+          new StateMachine();
         } catch (\Exception $notExpected) {
           $this->fail();
         }
@@ -257,8 +257,8 @@ class StateMachineTest extends TestCase
         $sm->fireEvent($event_a);
         $sm->fireEvent($event_b);
 
-        $this->assertTrue($fired[EventEnum::EVENT_A], "From 1 State on Event A to new 1 State");
-        $this->assertTrue($fired[EventEnum::EVENT_B], "From 1 State on Event B to new 1 State");
+        $this->assertTrue((bool)$fired[EventEnum::EVENT_A], "From 1 State on Event A to new 1 State");
+        $this->assertTrue((bool)$fired[EventEnum::EVENT_B], "From 1 State on Event B to new 1 State");
     }
 
     public function test_can_do_transitions_on_the_same_events()
@@ -284,8 +284,8 @@ class StateMachineTest extends TestCase
         $sm->fireEvent($event_a);
         $sm->fireEvent($event_a);
 
-        $this->assertTrue($fired[StateEnum::STATE_1], "From 1 State on Event A to new 2 State");
-        $this->assertTrue($fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
+        $this->assertTrue((bool)$fired[StateEnum::STATE_1], "From 1 State on Event A to new 2 State");
+        $this->assertTrue((bool)$fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
     }
 
     public function test_can_do_transition_with_null_action()
@@ -307,7 +307,7 @@ class StateMachineTest extends TestCase
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
-    public function test_execAction_argument_must_be_Closure_or_array()
+    public function test_action_argument_must_be_Closure_or_array()
     {
         $this->expectException(InvalidArgumentException::class);
 
@@ -377,7 +377,7 @@ class StateMachineTest extends TestCase
         $this->assertFalse($sm->can($event_b));
     }
 
-    public function test_action_receive_the_same_machine_as_an_argument()
+    public function test_action_receives_the_same_machine_as_an_argument()
     {
         $that = $this;
 
@@ -420,7 +420,7 @@ class StateMachineTest extends TestCase
         $this->assertSame($state_1, $sm->getCurrentState());
     }
 
-    public function test_fire_nested_transitions_are_enqueued()
+    public function test_fire_nested_events_are_enqueued()
     {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;
@@ -484,9 +484,9 @@ class StateMachineTest extends TestCase
 
         $sm->fireEvent($event_a);
 
-        $this->assertTrue($fired[EventEnum::EVENT_A]);
-        $this->assertTrue($fired[EventEnum::EVENT_B]);
-        $this->assertTrue($fired[EventEnum::EVENT_C]);
+        $this->assertTrue((bool)$fired[EventEnum::EVENT_A]);
+        $this->assertTrue((bool)$fired[EventEnum::EVENT_B]);
+        $this->assertTrue((bool)$fired[EventEnum::EVENT_C]);
 
         $this->assertSame($state_1, $sm->getCurrentState());
     }

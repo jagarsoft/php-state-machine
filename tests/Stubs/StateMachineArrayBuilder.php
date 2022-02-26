@@ -13,10 +13,27 @@ class StateMachineArrayBuilder implements StateMachineBuilder {
      */
     public function from()
     {
+        /*
+                      EVENT_A | EVENT_B | EVENT_C
+                    +---------+---------+---------+
+            STATE_1 | before  |         |         |
+                    | STATE_2 |         |         |
+            --------+---------+---------+---------+
+            STATE_2 |         | guard   |         |
+                    |         | STATE_3 |         |
+            --------+---------+---------+---------+
+            STATE_3 |         |         | STATE_1 |
+                    |         |         | action  |
+            --------+-----------------------------+
+            STATE_4 |         |         | STATE_1 |
+                    |         |         | after   |
+            --------+-----------------------------+
+         */
         return [
-            StateEnum::STATE_1 => [EventEnum::EVENT_A => [StateEnum::STATE_2]],
-            StateEnum::STATE_2 => [EventEnum::EVENT_B => [StateEnum::STATE_3]],
-            StateEnum::STATE_3 => [EventEnum::EVENT_C => [StateEnum::STATE_1]],
+        StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2 /*, StateMachine::EXEC_BEFORE => function(){}*/ ] ],
+        StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3 /*, StateMachine::EXEC_GUARD => function(){return false}*/] ],
+        StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::EXEC_ACTION => function(){}*/ ] ]
+        //StateEnum::STATE_4 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::EXEC_AFTER => function(){}*/ ] ],
         ];
     }
 
