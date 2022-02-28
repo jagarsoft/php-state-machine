@@ -23,7 +23,7 @@ class StateMachineTest extends TestCase
         $this->assertTrue(TRUE);
     }
 
-    public function test_can_make_StateMachine_from_construct()
+    public function test_can_make_StateMachine_from_StateMachineArrayBuilder()
     {
         $sm = new StateMachine(new StateMachineArrayBuilder());
 
@@ -282,7 +282,7 @@ class StateMachineTest extends TestCase
         $this->assertTrue((bool)$fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
     }
 
-    public function test_currentevent_is_null_without_fire()
+    public function test_currentevent_is_null_without_firing()
     {
         $state_1 = StateEnum::STATE_1;
         $state_2 = StateEnum::STATE_2;

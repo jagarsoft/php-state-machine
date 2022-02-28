@@ -75,7 +75,7 @@ class StateMachine
             $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ];
             $arrayActions = $execAction;
             foreach ($arrayActions as $exec_action => $action) {
-                if( in_array($exec_action, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true) ){
+                if( $this->in_actions_key($exec_action) ){
                     if( $action === null )
                         continue;
                     $this->argumentMustBeClosureOrFail($action);
@@ -210,9 +210,9 @@ class StateMachine
 
         $data_out = [];
         foreach ($data as $value) {
-            if (in_array($value, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true))
+            if ($this->in_actions_key($value))
                 continue;
-            $data_out[$value] = $this->sm[$this->getCurrentState()][$this->getCurrentEvent()][$value];
+            $data_out[$value] = $this->sm[$this->currentState][$this->currentEvent][$value];
         }
 
         return $data_out;
@@ -224,11 +224,16 @@ class StateMachine
         $this->argumentIsNotNullOrFail($this->getCurrentEvent());
 
         foreach ($data as $key => $value) {
-            if (in_array($key, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true)) {
+            if ($this->in_actions_key($key)) {
                 throw new \InvalidArgumentException("Can not set Actions as extra data");
             }
-            $this->sm[$this->getCurrentState()][$this->getCurrentEvent()][$key] = $value;
+            $this->sm[$this->currentState][$this->currentEvent][$key] = $value;
         }
+    }
+
+    private function in_actions_key($key): bool
+    {
+        return in_array($key, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true);
     }
 
     public function cancelTransition(): void
