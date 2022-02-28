@@ -30,10 +30,10 @@ class StateMachineArrayBuilder implements StateMachineBuilder {
             --------+-----------------------------+
          */
         return [
-        StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2 /*, StateMachine::EXEC_BEFORE => function(){}*/ ] ],
-        StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3 /*, StateMachine::EXEC_GUARD => function(){return false}*/] ],
-        StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::EXEC_ACTION => function(){}*/ ] ]
-        //StateEnum::STATE_4 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::EXEC_AFTER => function(){}*/ ] ],
+        StateEnum::STATE_1 => [ EventEnum::EVENT_A => [ StateEnum::STATE_2 /*, StateMachine::$EXEC_BEFORE => function(){}*/ ] ],
+        StateEnum::STATE_2 => [ EventEnum::EVENT_B => [ StateEnum::STATE_3 /*, StateMachine::$EXEC_GUARD => function(){return false}*/] ],
+        StateEnum::STATE_3 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::$EXEC_ACTION => function(){}*/ ] ]
+        //StateEnum::STATE_4 => [ EventEnum::EVENT_C => [ StateEnum::STATE_1 /*, StateMachine::$EXEC_AFTER => function(){}*/ ] ],
         ];
     }
 

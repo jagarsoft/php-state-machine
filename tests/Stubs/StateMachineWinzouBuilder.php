@@ -88,14 +88,14 @@ class StateMachineWinzouBuilder implements StateMachineBuilder {
             $from = $transition['from'];
             foreach ($from as $state){
 
-                $sm_array[$state][$event] = [ StateMachine::NEXT_STATE => $transition['to'] ];
+                $sm_array[$state][$event] = [ StateMachine::$NEXT_STATE => $transition['to'] ];
 
                 if( in_array($transition['to'], $guard_to) )
-                    $sm_array[$state][$event] = [ StateMachine::NEXT_STATE => $transition['to'], StateMachine::EXEC_GUARD => $guard ];
+                    $sm_array[$state][$event] = [ StateMachine::$NEXT_STATE => $transition['to'], StateMachine::$EXEC_GUARD => $guard ];
                 if( in_array($state, $before_from) )
-                    $sm_array[$state][$event] = [ StateMachine::NEXT_STATE => $transition['to'], StateMachine::EXEC_BEFORE => $before ];
+                    $sm_array[$state][$event] = [ StateMachine::$NEXT_STATE => $transition['to'], StateMachine::$EXEC_BEFORE => $before ];
                 if( in_array($transition['to'], $after_on) )
-                    $sm_array[$state][$event] = [ StateMachine::NEXT_STATE => $transition['to'], Statemachine::EXEC_AFTER => $after ];
+                    $sm_array[$state][$event] = [ StateMachine::$NEXT_STATE => $transition['to'], StateMachine::$EXEC_AFTER => $after ];
             }
         }
 

@@ -3,14 +3,11 @@
 namespace jagarsoft\StateMachine;
 
 use jagarsoft\StateMachine\StateMachineBuilder;
+use jagarsoft\StateMachine\ActionsKeyEnum;
 
 class StateMachine
 {
-    public const NEXT_STATE = 0;
-    public const EXEC_ACTION = 'EXEC_ACTION';
-    public const EXEC_GUARD = 'EXEC_GUARD';
-    public const EXEC_BEFORE = 'EXEC_BEFORE';
-    public const EXEC_AFTER = 'EXEC_AFTER';
+    use ActionsKeyEnum;
 
     protected array $sm = [];
     protected $currentState = null;
@@ -32,7 +29,7 @@ class StateMachine
                 $this->addState($state);
                 foreach ($transition as $onEvent => $nextStateAndAction) {
                     $this->addTransition($state, $onEvent,
-                        $nextStateAndAction[self::NEXT_STATE],
+                        $nextStateAndAction[self::$NEXT_STATE],
                         $nextStateAndAction);
                 }
             }
@@ -70,9 +67,9 @@ class StateMachine
         $this->setCurrentStateIfThisIsInitialState($currentState);
 
         if( $execAction === null ){
-            $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ];
+            $this->sm[$currentState][$currentEvent] = [ self::$NEXT_STATE => $nextState ];
         } elseif (is_array($execAction)) {
-            $this->sm[$currentState][$currentEvent] = [ self::NEXT_STATE => $nextState ];
+            $this->sm[$currentState][$currentEvent] = [ self::$NEXT_STATE => $nextState ];
             $arrayActions = $execAction;
             foreach ($arrayActions as $exec_action => $action) {
                 if( $this->in_actions_key($exec_action) ){
@@ -84,8 +81,8 @@ class StateMachine
             }
         } elseif($execAction instanceof \Closure) {
             $this->sm[$currentState][$currentEvent] = [
-                                                        self::NEXT_STATE => $nextState,
-                                                        self::EXEC_ACTION => $execAction
+                                                        self::$NEXT_STATE => $nextState,
+                                                        self::$EXEC_ACTION => $execAction
                                                     ];
         } else {
             $this->argumentMustBeClosureOrFail(null);
@@ -125,7 +122,7 @@ class StateMachine
 
         $transition = $this->sm[$this->currentState][$event];
 
-        $this->nextState = $transition[self::NEXT_STATE];
+        $this->nextState = $transition[self::$NEXT_STATE];
         $this->currentEvent = $event;
 
         $this->stateMustExistOrFail($this->nextState);
@@ -133,9 +130,9 @@ class StateMachine
         $wasGuarded = $this->execGuard($transition);
 
         if (!$wasGuarded) {
-            $this->execAction(self::EXEC_BEFORE, $transition);
-            $this->execAction(self::EXEC_ACTION, $transition);
-            $this->execAction(self::EXEC_AFTER, $transition);
+            $this->execAction(self::$EXEC_BEFORE, $transition);
+            $this->execAction(self::$EXEC_ACTION, $transition);
+            $this->execAction(self::$EXEC_AFTER, $transition);
         }
 
         if ($this->cancelTransition || $wasGuarded) {
@@ -156,8 +153,8 @@ class StateMachine
     private function execGuard($transition): bool
     {
         $wasGuarded = false;
-        if( array_key_exists(self::EXEC_GUARD, $transition) ){
-            $guard = $transition[self::EXEC_GUARD];
+        if( array_key_exists(self::$EXEC_GUARD, $transition) ){
+            $guard = $transition[self::$EXEC_GUARD];
             if ($guard) {
                 if (($guard)($this) === false)
                     $wasGuarded = true;
@@ -190,7 +187,7 @@ class StateMachine
 
         $nextState = $this->nextState;
         $currentEvent = $this->currentEvent;
-        $this->nextState = $transition[self::NEXT_STATE];
+        $this->nextState = $transition[self::$NEXT_STATE];
         $this->currentEvent = $event;
 
         $this->stateMustExistOrFail($this->nextState);
@@ -229,11 +226,6 @@ class StateMachine
             }
             $this->sm[$this->currentState][$this->currentEvent][$key] = $value;
         }
-    }
-
-    private function in_actions_key($key): bool
-    {
-        return in_array($key, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true);
     }
 
     public function cancelTransition(): void

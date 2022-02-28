@@ -162,6 +162,22 @@ class StateMachineTest extends TestCase
         $this->assertSame($state_2, $sm->getCurrentState());
     }
 
+    public function test_can_make_valid_nextstate()
+    {
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1, $event_a, $state_1, [
+            StateMachine::$NEXT_STATE => $state_2
+        ]);
+
+        $this->assertSame($state_1, $sm->getCurrentState());
+    }
+
     public function test_can_make_valid_transition()
     {
         $state_1 = StateEnum::STATE_1;
@@ -659,8 +675,8 @@ class StateMachineTest extends TestCase
         $sm->addState($state_1);
 
         $sm->addTransition($state_1, $event_a, $state_1, [
-            StateMachine::EXEC_GUARD => $guard,
-            StateMachine::EXEC_ACTION => $action
+            StateMachine::$EXEC_GUARD => $guard,
+            StateMachine::$EXEC_ACTION => $action
         ]);
 
         $sm->fireEvent($event_a);
@@ -690,10 +706,10 @@ class StateMachineTest extends TestCase
         $sm->addState($state_1);
 
         $sm->addTransition($state_1, $event_a, $state_1, [
-            StateMachine::EXEC_GUARD => null, // it's optional, really
-            StateMachine::EXEC_BEFORE => $before,
-            StateMachine::EXEC_ACTION => null, // it's optional, really
-            StateMachine::EXEC_AFTER => $after
+            StateMachine::$EXEC_GUARD => null, // it's optional, really
+            StateMachine::$EXEC_BEFORE => $before,
+            StateMachine::$EXEC_ACTION => null, // it's optional, really
+            StateMachine::$EXEC_AFTER => $after
         ]);
 
         $sm->fireEvent($event_a);
@@ -735,7 +751,7 @@ class StateMachineTest extends TestCase
         $sm->addState($state_2);
 
         $sm->addTransition($state_1, $event_a, $state_2, [
-            StateMachine::EXEC_ACTION => $action_data,
+            StateMachine::$EXEC_ACTION => $action_data,
             'DATA' => array('p' => true)
         ]);
         $sm->addTransition($state_2, $event_b, $state_1);
@@ -758,14 +774,14 @@ class StateMachineTest extends TestCase
         $event_a = EventEnum::EVENT_A;
 
         $action_data = function(StateMachine $sm) {
-                $sm->getTransitionData([StateMachine::EXEC_ACTION]);
-                $sm->setTransitionData([StateMachine::EXEC_ACTION => ['DATA' => array('p' => true)]]);
+                $sm->getTransitionData([StateMachine::$EXEC_ACTION]);
+                $sm->setTransitionData([StateMachine::$EXEC_ACTION => ['DATA' => array('p' => true)]]);
             };
 
         $sm = new StateMachine();
 
         $sm->addTransition($state_1, $event_a, $state_1, [
-            StateMachine::EXEC_ACTION => $action_data,
+            StateMachine::$EXEC_ACTION => $action_data,
             'DATA' => array('p' => true)
         ]);
 
