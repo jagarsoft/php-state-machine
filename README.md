@@ -106,6 +106,7 @@ _StateMachine_ gives you the followings features:
 1. You can execute a _guard_ in order to cancel transition
 1. You can execute a function _before_ and/or _after_ action
 1. You can create _StateMachine_ from _Array_ or _Winzou_ config
+1. You can store extra data in transition
 
 Coming soon... you will be able to create _StateMachine_ from other sources, for instance, DOT definition.
 _StateMachine_ so created is fully functional and will respond to their events.

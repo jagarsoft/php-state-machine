@@ -101,8 +101,6 @@ class StateMachineTest extends TestCase
         $sm->addTransition($currentState, $currentEvent, $nextState);
 
         $sm->fireEvent($currentEvent);
-
-        $this->assertTrue(TRUE);
     }
 
     public function transitionsProvider(): array
@@ -212,8 +210,6 @@ class StateMachineTest extends TestCase
 
         $sm->fireEvent($event_a); // $state_2 can be the destination of a transition
         $sm->fireEvent($event_a); // This event will fire an unexpected $state_2 state
-
-        $this->assertTrue(TRUE);
     }
 
     public function test_can_not_do_transition_on_undefined_event()
@@ -230,8 +226,6 @@ class StateMachineTest extends TestCase
         $sm->addTransition($state_1, $event_a, $state_1);
 
         $sm->fireEvent($event_b); // Unexpected event event_b on current state
-
-        $this->assertTrue(TRUE);
     }
 
     public function test_can_do_transitions_from_the_same_state()
@@ -288,6 +282,23 @@ class StateMachineTest extends TestCase
         $this->assertTrue((bool)$fired[StateEnum::STATE_2], "From 2 State on Event A to new 1 State");
     }
 
+    public function test_currentevent_is_null_without_fire()
+    {
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $sm = new Statemachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+
+        $sm->addTransition($state_1, $event_a, $state_2);
+
+        $this->assertNull($sm->getCurrentEvent());
+    }
+
     public function test_can_do_transition_with_null_action()
     {
         $state_1 = StateEnum::STATE_1;
@@ -324,7 +335,24 @@ class StateMachineTest extends TestCase
         $sm->addTransition($state_1, $event_a, $state_2, 'This is not a valid argument');
     }
 
-    public function test_transition_can_be_proven_with_a_valid_event()
+    public function test_transition_can_be_proven()
+    {
+        $state_1 = StateEnum::STATE_1;
+
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+
+        $sm->addTransition($state_1, $event_a, $state_1);
+
+        $this->assertTrue($sm->can($event_a));
+        $this->assertFalse($sm->can($event_b));
+    }
+
+    public function test_transition_can_not_be_proven_with_a_blank_nor_null_event()
     {
         $this->expectException(InvalidArgumentException::class);
 
@@ -338,8 +366,6 @@ class StateMachineTest extends TestCase
 
         $sm->can("");
         $sm->can(null);
-        $this->assertFalse($sm->can($event_a));
-
     }
 
     public function test_transition_can_be_proven_with_a_valid_nextstate()
@@ -358,23 +384,6 @@ class StateMachineTest extends TestCase
         $sm->addTransition($state_1, $event_a, $state_2); // undefined next state
 
         $sm->can($event_a);
-    }
-
-    public function test_transition_can_be_proven()
-    {
-        $state_1 = StateEnum::STATE_1;
-
-        $event_a = EventEnum::EVENT_A;
-        $event_b = EventEnum::EVENT_B;
-
-        $sm = new StateMachine();
-
-        $sm->addState($state_1);
-
-        $sm->addTransition($state_1, $event_a, $state_1);
-
-        $this->assertTrue($sm->can($event_a));
-        $this->assertFalse($sm->can($event_b));
     }
 
     public function test_action_receives_the_same_machine_as_an_argument()
@@ -560,8 +569,6 @@ class StateMachineTest extends TestCase
         $sm->addTransition($state_1, $event_a, $state_1, $action);
 
         $sm->fireEvent($event_a);
-
-        $this->assertTrue(True);
     }
 
 	public function test_can_modify_machine_dynamically()
@@ -693,6 +700,76 @@ class StateMachineTest extends TestCase
 
         $this->assertTrue($firedBefore, true);
         $this->assertTrue($firedAfter, true);
+    }
+
+    public function test_extra_data_can_be_stored_in_transition()
+    {
+        $that = $this;
+
+        $fired['FIRST_STRIKE'] = false;
+        $fired['SECOND_STRIKE'] = false;
+
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+        $event_b = EventEnum::EVENT_B;
+
+        $action_data = function(StateMachine $sm) use ($that, &$fired) {
+            $data = $sm->getTransitionData(['DATA']);
+            if (! $fired['FIRST_STRIKE']) {
+                $that->assertTrue($data['DATA']['p'], 'First strike failed');
+                $fired['FIRST_STRIKE'] = true;
+            } elseif (! $fired['SECOND_STRIKE']) {
+                $that->assertFalse($data['DATA']['p'], 'Second strike failed');
+                $fired['SECOND_STRIKE'] = true;
+            }
+
+            $data['DATA']['p'] = ! $data['DATA']['p'];
+            $sm->setTransitionData(['DATA' => $data['DATA']]);
+            };
+
+        $sm = new StateMachine();
+
+        $sm->addState($state_1);
+        $sm->addState($state_2);
+
+        $sm->addTransition($state_1, $event_a, $state_2, [
+            StateMachine::EXEC_ACTION => $action_data,
+            'DATA' => array('p' => true)
+        ]);
+        $sm->addTransition($state_2, $event_b, $state_1);
+
+        $sm->fireEvent($event_a); // first strike
+        $sm->fireEvent($event_b);
+        $sm->fireEvent($event_a); // second strike
+
+        $this->assertTrue((bool)$fired['FIRST_STRIKE']);
+        $this->assertTrue((bool)$fired['SECOND_STRIKE']);
+    }
+
+    public function test_actions_can_not_be_stored_as_extra_data_in_transition()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $state_1 = StateEnum::STATE_1;
+        $state_2 = StateEnum::STATE_2;
+
+        $event_a = EventEnum::EVENT_A;
+
+        $action_data = function(StateMachine $sm) {
+                $sm->getTransitionData([StateMachine::EXEC_ACTION]);
+                $sm->setTransitionData([StateMachine::EXEC_ACTION => ['DATA' => array('p' => true)]]);
+            };
+
+        $sm = new StateMachine();
+
+        $sm->addTransition($state_1, $event_a, $state_1, [
+            StateMachine::EXEC_ACTION => $action_data,
+            'DATA' => array('p' => true)
+        ]);
+
+        $sm->fireEvent($event_a);
     }
 
     public function test_can_use_method_chaining()

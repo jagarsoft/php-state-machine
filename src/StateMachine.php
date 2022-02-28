@@ -203,6 +203,34 @@ class StateMachine
         return $wasGuarded;
     }
 
+    public function getTransitionData(array $data): array
+    {
+        $this->argumentIsValidOrFail($this->getCurrentState());
+        $this->argumentIsNotNullOrFail($this->getCurrentEvent());
+
+        $data_out = [];
+        foreach ($data as $value) {
+            if (in_array($value, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true))
+                continue;
+            $data_out[$value] = $this->sm[$this->getCurrentState()][$this->getCurrentEvent()][$value];
+        }
+
+        return $data_out;
+    }
+
+    public function setTransitionData(array $data): void
+    {
+        $this->argumentIsValidOrFail($this->getCurrentState());
+        $this->argumentIsNotNullOrFail($this->getCurrentEvent());
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, [self::EXEC_ACTION, self::EXEC_GUARD, self::EXEC_BEFORE, self::EXEC_AFTER], true)) {
+                throw new \InvalidArgumentException("Can not set Actions as extra data");
+            }
+            $this->sm[$this->getCurrentState()][$this->getCurrentEvent()][$key] = $value;
+        }
+    }
+
     public function cancelTransition(): void
     {
         $this->cancelTransition = true;
